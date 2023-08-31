@@ -162,19 +162,6 @@ def main():
         model = load_custom_model(cfg_model_path, device_option)
 
 
-
-
-    # upload model
-    model_src = st.sidebar.radio("Select yolov5 weight file", ["Custom model", "YOLO"])
-    # URL, upload file (max 200 mb)
-    if model_src == "Use your own model":
-        user_model_path = get_user_model()
-        if user_model_path:
-            cfg_model_path = user_model_path
-
-        st.sidebar.text(cfg_model_path.split("/")[-1])
-        st.sidebar.markdown("---")
-
     
 
     # check if model file is available
