@@ -99,7 +99,7 @@ def infer_image(img, size=None):
     return image
 
 
-@st.cache_resource
+@st.experimental_singleton
 def load_model(path, device):
     model_ = torch.hub.load('ultralytics/yolov5', 'custom', path=path, force_reload=True)
     model_.to(device)
@@ -107,7 +107,13 @@ def load_model(path, device):
     return model_
 
 
-@st.cache_resource
+def load_custom_model(model_path, device):
+    model = torch.load(model_path, map_location=device)
+    model.eval()
+    return model
+
+
+@st.experimental_singleton
 def download_model(url):
     model_file = wget.download(url, out="models")
     return model_file
@@ -131,6 +137,8 @@ def get_user_model():
 
     return model_file
 
+
+
 def main():
     # global variables
     global model, confidence, cfg_model_path
@@ -138,6 +146,20 @@ def main():
     st.title("Object Detection Webpage")
 
     st.sidebar.title("Settings")
+
+    # upload model
+    model_src = st.sidebar.radio("Select yolov5 weight file", ["Custom model", "YOLO"])
+    # URL, upload file (max 200 mb)
+    if model_src == "Use your own model":
+        user_model_path = get_user_model()
+        if user_model_path:
+            cfg_model_path = user_model_path
+
+        st.sidebar.text(cfg_model_path.split("/")[-1])
+        st.sidebar.markdown("---")
+
+        # Load the custom model
+        model = load_custom_model(cfg_model_path, device_option)
 
 
 
