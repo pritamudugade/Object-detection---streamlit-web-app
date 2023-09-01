@@ -2,7 +2,10 @@ name: streamlit-app
 channels:
   - defaults
 dependencies:
-  - python=3.9  # Specify the desired Python version
-  - streamlit   # Streamlit library
-  - opencv      # OpenCV for image processing (if used)
+  - python=3.9
+  - streamlit
+  - opencv
+  - wget  # Add 'wget' to the list of dependencies
+  
+
   
