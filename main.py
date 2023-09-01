@@ -19,8 +19,14 @@ def image_input(data_src):
     if data_src == 'Sample data':
         # get all sample images
         img_path = glob.glob('data/sample_images/*')
-        img_slider = st.slider("Select a test image.", min_value=1, max_value=len(img_path), step=1)
-        img_file = img_path[img_slider - 1]
+        if img_path:
+            img_slider = st.slider("Select a test image.", min_value=1, max_value=len(img_path), step=1)
+            if 1 <= img_slider <= len(img_path):
+                img_file = img_path[img_slider - 1]
+            else:
+                st.error("Invalid image selection.")
+        else:
+            st.error("please select desired option")
     else:
         img_bytes = st.sidebar.file_uploader("Upload an image", type=['png', 'jpeg', 'jpg'])
         if img_bytes:
@@ -91,6 +97,8 @@ def video_input(data_src):
         cap.release()
 
 
+
+
 def infer_image(img, size=None):
     model.conf = confidence
     result = model(img, size=size) if size else model(img)
@@ -99,7 +107,7 @@ def infer_image(img, size=None):
     return image
 
 
-@st.experimental_singleton
+@st.cache_resource
 def load_model(path, device):
     model_ = torch.hub.load('ultralytics/yolov5', 'custom', path=path, force_reload=True)
     model_.to(device)
@@ -113,7 +121,7 @@ def load_custom_model(model_path, device):
     return model
 
 
-@st.experimental_singleton
+@st.cache_resource
 def download_model(url):
     model_file = wget.download(url, out="models")
     return model_file
@@ -137,18 +145,27 @@ def get_user_model():
 
     return model_file
 
+# Default values
+default_input_option = 'video'
+default_data_src = 'Upload data from local system'
+
 
 
 def main():
     # global variables
     global model, confidence, cfg_model_path
 
-    st.title("Object Detection Webpage")
+    st.title("Object Detection Webapp")
 
-    st.sidebar.title("Settings")
+    st.sidebar.title("Custom settings")
+
+    # Initialize device_option
+    device_option = 'cpu'
+
+    
 
     # upload model
-    model_src = st.sidebar.radio("Select yolov5 weight file", ["Custom model", "YOLO"])
+    model_src = st.sidebar.radio("Select weight file", ["Custom model", "YOLO"])
     # URL, upload file (max 200 mb)
     if model_src == "Use your own model":
         user_model_path = get_user_model()
@@ -161,18 +178,15 @@ def main():
         # Load the custom model
         model = load_custom_model(cfg_model_path, device_option)
 
-
-    
-
     # check if model file is available
     if not os.path.isfile(cfg_model_path):
-        st.warning("Model file not available!!!, please added to the model folder.", icon="⚠️")
+        st.warning("Model file not available!!!, please add it to the model folder.", icon="⚠️")
     else:
         # device options
         if torch.cuda.is_available():
-            device_option = st.sidebar.radio("Select Device", ['cpu', 'cuda'], disabled=False, index=0)
+            device_option = st.sidebar.radio("Select Device", ['cpu', 'GPU'], disabled=False, index=0)
         else:
-            device_option = st.sidebar.radio("Select Device", ['cpu', 'cuda'], disabled=True, index=0)
+            device_option = st.sidebar.radio("Select Device", ['cpu', 'GPU'], disabled=True, index=0)
 
         # load model
         model = load_model(cfg_model_path, device_option)
@@ -195,7 +209,7 @@ def main():
         input_option = st.sidebar.radio("Select input type: ", ['image', 'video'])
 
         # input src option
-        data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload your own data'])
+        data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload data from local system'])
 
         if input_option == 'image':
             image_input(data_src)
