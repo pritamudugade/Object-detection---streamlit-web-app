@@ -2,7 +2,7 @@
 FROM python:3.9
 
 # Set the working directory in the container
-WORKDIR /main
+WORKDIR /app
 
 # Install system-level dependencies for OpenCV
 RUN apt-get update && apt-get install -y libgl1-mesa-glx
@@ -12,7 +12,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy your Streamlit app code into the container
-COPY . .
+COPY . /app
 
 # Expose the port that Streamlit uses
 EXPOSE 8501
