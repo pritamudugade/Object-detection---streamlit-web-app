@@ -16,6 +16,7 @@ protobuf<4.21.5  # https://github.com/ultralytics/yolov5/issues/8012
 opencv-python
 streamlit-metrics
 transformers
+streamlit-drawable-canvas
 
 
 # Plotting ------------------------------------
