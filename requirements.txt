@@ -2,6 +2,7 @@
 # Usage: pip install -r requirements.txt
 
 # Base ----------------------------------------
+Python 3.9.0
 wget
 matplotlib>=3.2.2
 numpy>=1.18.5
