@@ -1,5 +1,6 @@
-import glob
+
 import streamlit as st
+import glob
 import wget
 from PIL import Image
 import torch
