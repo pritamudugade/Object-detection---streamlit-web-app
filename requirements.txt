@@ -20,3 +20,4 @@ ipython
 psutil
 thop
 streamlit
+ultralytics
