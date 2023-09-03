@@ -23,6 +23,8 @@ st.sidebar.markdown("Author: MobiNext Technologies")
 st.sidebar.markdown("Task: Real time object detection")
 
 
+
+
 def image_input(data_src):
     img_file = None
     if data_src == 'Sample data':
@@ -134,6 +136,10 @@ def video_input(data_src):
         for obj in unique_detected_objects:
             st.write(obj)
 
+def time_widget():
+    st.sidebar.markdown("## Time")
+    st.sidebar.markdown("00:00:00")  # Initialize with 0 time
+
 
 def infer_image(img, size=None):
     model.conf = confidence
@@ -221,6 +227,16 @@ def main():
             image_input(data_src)
         else:
             video_input(data_src)
+
+    # Add time widget to the main web page
+    time_widget()
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except SystemExit:
+        pass
 
 if __name__ == "__main__":
     try:
