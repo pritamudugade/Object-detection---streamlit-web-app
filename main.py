@@ -8,6 +8,10 @@ import cv2
 import os
 import time
 
+import torch
+torch.hub._reset()
+
+
 st.set_page_config(layout="wide")
 
 cfg_model_path = 'models/yolov5s.pt'
