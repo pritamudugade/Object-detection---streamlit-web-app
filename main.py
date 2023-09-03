@@ -84,7 +84,7 @@ def video_input(data_src):
             st.markdown("## FPS")
             st3_text = st.markdown(f"{fps:.2f}")
         with st4:
-            st.markdown("## Time")
+            st.markdown("## Total Time")
             st4_text = st.markdown("00:00:00")  # Initialize with 0 time
 
         st.markdown("---")
@@ -131,10 +131,11 @@ def video_input(data_src):
 
         cap.release()
 
-        # Display the unique list of detected objects at the end of the video
+        # Display the unique list of detected objects at the end of the video in list format
         st.subheader("Unique Detected Objects")
-        for obj in unique_detected_objects:
-            st.write(obj)
+        unique_objects_list = list(unique_detected_objects)
+        st.write(unique_objects_list)
+
 
 def time_widget():
     st.sidebar.markdown("## Time")
