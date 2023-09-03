@@ -152,7 +152,6 @@ def main():
     if user_model_path:
         cfg_model_path = user_model_path
 
-    st.sidebar.text(cfg_model_path.split("/")[-1])
     st.sidebar.markdown("---")
 
     if not os.path.isfile(cfg_model_path):
