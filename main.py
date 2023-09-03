@@ -16,7 +16,7 @@ confidence = .25
 
 # Author details
 st.sidebar.markdown("Author: MobiNext Technologies")
-st.sidebar.markdown("Email: pritam.u@mobinexttech.com")
+st.sidebar.markdown("Task: Real time object detection")
 
 
 def image_input(data_src):
