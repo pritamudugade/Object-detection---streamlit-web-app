@@ -46,6 +46,7 @@ def image_input(data_src):
             img = infer_image(img_file)
             st.image(img, caption="Model prediction")
 
+
 def video_input(data_src):
     vid_file = None
     if data_src == 'Sample data':
@@ -85,7 +86,7 @@ def video_input(data_src):
 
         frame_skip = 5  # Adjust frame skipping as needed
         frame_count = 0
-        object_counts = {}  # To store object counts
+        detected_objects = []  # To store detected objects
 
         while True:
             ret, frame = cap.read()
@@ -101,12 +102,10 @@ def video_input(data_src):
                 output_img, objects = infer_image(frame)
                 output.image(output_img)
 
-                # Update object counts
-                for obj in objects:
-                    object_name = obj['name']
-                    if object_name not in object_counts:
-                        object_counts[object_name] = 0
-                    object_counts[object_name] += 1
+                # Extract object names
+                object_names = [obj['name'] for obj in objects]
+
+                detected_objects.extend(object_names)
 
                 curr_time = time.time()
                 fps = 1 / (curr_time - prev_time)
@@ -117,12 +116,11 @@ def video_input(data_src):
 
         cap.release()
 
-        # Display summary at the end of the video
-        st.subheader("Summary")
-        st.write(f"Total Frames: {frame_count}")
-        st.write("Objects Found:")
-        for object_name, count in object_counts.items():
-            st.write(f"{object_name}: {count}")
+        # Display list of detected objects at the end of the video
+        st.subheader("Detected Objects")
+        for obj in detected_objects:
+            st.write(obj)
+
 
 
 def infer_image(img, size=None):
