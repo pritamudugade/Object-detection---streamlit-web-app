@@ -14,6 +14,10 @@ cfg_model_path = 'models/yolov5s.pt'
 model = None
 confidence = .25
 
+# Author details
+st.sidebar.markdown("Author: MobiNext Technologies")
+st.sidebar.markdown("Email: pritam.u@mobinexttech.com")
+
 
 def image_input(data_src):
     img_file = None
@@ -41,7 +45,6 @@ def image_input(data_src):
         with col2:
             img = infer_image(img_file)
             st.image(img, caption="Model prediction")
-
 
 def video_input(data_src):
     vid_file = None
@@ -73,12 +76,16 @@ def video_input(data_src):
             st2_text = st.markdown(f"{width}")
         with st3:
             st.markdown("## FPS")
-            st3_text = st.markdown(f"{fps}")
+            st3_text = st.markdown(f"{fps:.2f}")
 
         st.markdown("---")
         output = st.empty()
         prev_time = 0
         curr_time = 0
+
+        frame_count = 0
+        object_counts = {}  # To store object counts
+
         while True:
             ret, frame = cap.read()
             if not ret:
@@ -86,7 +93,7 @@ def video_input(data_src):
                 break
             frame = cv2.resize(frame, (width, height))
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            output_img = infer_image(frame)
+            output_img, objects = infer_image(frame)
             output.image(output_img)
             curr_time = time.time()
             fps = 1 / (curr_time - prev_time)
@@ -95,9 +102,23 @@ def video_input(data_src):
             st2_text.markdown(f"**{width}**")
             st3_text.markdown(f"**{fps:.2f}**")
 
+            # Update object counts
+            for obj in objects:
+                object_name = obj['name']
+                if object_name not in object_counts:
+                    object_counts[object_name] = 0
+                object_counts[object_name] += 1
+
+            frame_count += 1
+
         cap.release()
 
-
+        # Display summary at the end of the video
+        st.subheader("Summary")
+        st.write(f"Total Frames: {frame_count}")
+        st.write("Objects Found:")
+        for object_name, count in object_counts.items():
+            st.write(f"{object_name}: {count}")
 
 
 def infer_image(img, size=None):
