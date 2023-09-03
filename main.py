@@ -145,7 +145,9 @@ def get_user_model():
 def main():
     global model, confidence, cfg_model_path
 
-    st.title("VAMS-MobiNext")
+    # Center-align the title
+    st.markdown("<h1 style='text-align: center;'>VAMS-MobiNext</h1>", unsafe_allow_html=True)
+
     st.sidebar.title("Custom settings")
 
     user_model_path = get_user_model()
