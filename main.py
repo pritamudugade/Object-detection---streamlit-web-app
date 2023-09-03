@@ -82,7 +82,7 @@ def video_input(data_src):
         while True:
             ret, frame = cap.read()
             if not ret:
-                st.write("Can't read frame, stream ended? Exiting ....")
+                st.write("Can't read frame...")
                 break
             frame = cv2.resize(frame, (width, height))
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -147,7 +147,7 @@ def get_user_model():
     return model_file
 
 # Default values
-default_input_option = 'video'
+default_input_option = 'Video'
 default_data_src = 'Upload data from local system'
 
 
@@ -156,12 +156,9 @@ def main():
     # global variables
     global model, confidence, cfg_model_path
 
-    st.title("Object Detection Webapp")
+    st.title("VAMS-MobiNext")
 
     st.sidebar.title("Custom settings")
-
-    # Initialize device_option
-    device_option = 'cpu'
 
     
 
@@ -183,11 +180,12 @@ def main():
     if not os.path.isfile(cfg_model_path):
         st.warning("Model file not available!!!, please add it to the model folder.", icon="⚠️")
     else:
+        pass
         # device options
-        if torch.cuda.is_available():
-            device_option = st.sidebar.radio("Select Device", ['cpu', 'GPU'], disabled=False, index=0)
-        else:
-            device_option = st.sidebar.radio("Select Device", ['cpu', 'GPU'], disabled=True, index=0)
+        #if torch.cuda.is_available():
+            #device_option = st.sidebar.radio("Select Device", ['cpu', 'GPU'], disabled=False, index=0)
+        #else:
+            #device_option = st.sidebar.radio("Select Device", ['cpu', 'GPU'], disabled=True, index=0)
 
         # load model
         model = load_model(cfg_model_path, device_option)
@@ -207,12 +205,12 @@ def main():
         st.sidebar.markdown("---")
 
         # input options
-        input_option = st.sidebar.radio("Select input type: ", ['image', 'video'])
+        input_option = st.sidebar.radio("Select input type: ", ['Image', 'Video'])
 
         # input src option
         data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload data from local system'])
 
-        if input_option == 'image':
+        if input_option == 'Image':
             image_input(data_src)
         else:
             video_input(data_src)
