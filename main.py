@@ -83,6 +83,7 @@ def video_input(data_src):
         prev_time = 0
         curr_time = 0
 
+        frame_skip = 5  # Adjust frame skipping as needed
         frame_count = 0
         object_counts = {}  # To store object counts
 
@@ -91,25 +92,28 @@ def video_input(data_src):
             if not ret:
                 st.write("Can't read frame...")
                 break
-            frame = cv2.resize(frame, (width, height))
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            output_img, objects = infer_image(frame)
-            output.image(output_img)
-            curr_time = time.time()
-            fps = 1 / (curr_time - prev_time)
-            prev_time = curr_time
-            st1_text.markdown(f"**{height}**")
-            st2_text.markdown(f"**{width}**")
-            st3_text.markdown(f"**{fps:.2f}**")
-
-            # Update object counts
-            for obj in objects:
-                object_name = obj['name']
-                if object_name not in object_counts:
-                    object_counts[object_name] = 0
-                object_counts[object_name] += 1
 
             frame_count += 1
+
+            if frame_count % frame_skip == 0:
+                frame = cv2.resize(frame, (width, height))
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                output_img, objects = infer_image(frame)
+                output.image(output_img)
+
+                # Update object counts
+                for obj in objects:
+                    object_name = obj['name']
+                    if object_name not in object_counts:
+                        object_counts[object_name] = 0
+                    object_counts[object_name] += 1
+
+                curr_time = time.time()
+                fps = 1 / (curr_time - prev_time)
+                prev_time = curr_time
+                st1_text.markdown(f"**{height}**")
+                st2_text.markdown(f"**{width}**")
+                st3_text.markdown(f"**{fps:.2f}**")
 
         cap.release()
 
