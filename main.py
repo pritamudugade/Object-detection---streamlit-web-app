@@ -109,91 +109,58 @@ def infer_image(img, size=None):
 
 
 @st.cache_resource
-def load_model(path, device):
+def load_model(path):
     model_ = torch.hub.load('ultralytics/yolov5', 'custom', path=path, force_reload=True)
-    model_.to(device)
-    print("model to ", device)
+    model_.to('cpu')  # Assume CPU for simplicity
+    print("model to CPU")
     return model_
 
-
-def load_custom_model(model_path, device):
-    model = torch.load(model_path, map_location=device)
+def load_custom_model(model_path):
+    model = torch.load(model_path, map_location='cpu')  # Assume CPU for simplicity
     model.eval()
     return model
-
 
 @st.cache_resource
 def download_model(url):
     model_file = wget.download(url, out="models")
     return model_file
 
-
 def get_user_model():
-    model_src = st.sidebar.radio("Model source", ["file upload", "url"])
+    model_src = st.sidebar.radio("Model source", ["Custom model", "YOLO"])
     model_file = None
-    if model_src == "file upload":
-        model_bytes = st.sidebar.file_uploader("Upload a model file", type=['pt'])
-        if model_bytes:
-            model_file = "models/uploaded_" + model_bytes.name
+    if model_src == "Custom model":
+        user_model_path = st.sidebar.file_uploader("Upload a model file", type=['pt'])
+        if user_model_path:
+            model_file = "models/uploaded_" + user_model_path.name
             with open(model_file, 'wb') as out:
-                out.write(model_bytes.read())
+                out.write(user_model_path.read())
     else:
-        url = st.sidebar.text_input("model url")
+        url = st.sidebar.text_input("Model URL")
         if url:
             model_file_ = download_model(url)
             if model_file_.split(".")[-1] == "pt":
                 model_file = model_file_
-
     return model_file
 
-# Default values
-default_input_option = 'Video'
-default_data_src = 'Upload data from local system'
-
-
-
 def main():
-    # global variables
     global model, confidence, cfg_model_path
 
     st.title("VAMS-MobiNext")
-
     st.sidebar.title("Custom settings")
 
-    
+    user_model_path = get_user_model()
+    if user_model_path:
+        cfg_model_path = user_model_path
 
-    # upload model
-    model_src = st.sidebar.radio("Select weight file", ["Custom model", "YOLO"])
-    # URL, upload file (max 200 mb)
-    if model_src == "Use your own model":
-        user_model_path = get_user_model()
-        if user_model_path:
-            cfg_model_path = user_model_path
+    st.sidebar.text(cfg_model_path.split("/")[-1])
+    st.sidebar.markdown("---")
 
-        st.sidebar.text(cfg_model_path.split("/")[-1])
-        st.sidebar.markdown("---")
-
-        # Load the custom model
-        model = load_custom_model(cfg_model_path, device_option)
-
-    # check if model file is available
     if not os.path.isfile(cfg_model_path):
         st.warning("Model file not available!!!, please add it to the model folder.", icon="⚠️")
     else:
-        pass
-        # device options
-        #if torch.cuda.is_available():
-            #device_option = st.sidebar.radio("Select Device", ['cpu', 'GPU'], disabled=False, index=0)
-        #else:
-            #device_option = st.sidebar.radio("Select Device", ['cpu', 'GPU'], disabled=True, index=0)
+        model = load_model(cfg_model_path)
+        confidence = st.sidebar.slider('Confidence', min_value=0.1, max_value=1.0, value=0.45)
 
-        # load model
-        model = load_model(cfg_model_path, device_option)
-
-        # confidence slider
-        confidence = st.sidebar.slider('Confidence', min_value=0.1, max_value=1.0, value=.45)
-
-        # custom classes
         if st.sidebar.checkbox("Custom Classes"):
             model_names = list(model.names.values())
             assigned_class = st.sidebar.multiselect("Select Classes", model_names, default=[model_names[0]])
@@ -204,17 +171,13 @@ def main():
 
         st.sidebar.markdown("---")
 
-        # input options
         input_option = st.sidebar.radio("Select input type: ", ['Image', 'Video'])
-
-        # input src option
         data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload data from local system'])
 
         if input_option == 'Image':
             image_input(data_src)
         else:
             video_input(data_src)
-
 
 if __name__ == "__main__":
     try:
