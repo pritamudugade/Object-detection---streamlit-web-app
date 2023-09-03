@@ -126,7 +126,11 @@ def infer_image(img, size=None):
     result = model(img, size=size) if size else model(img)
     result.render()
     image = Image.fromarray(result.ims[0])
-    return image
+    
+    # Extract detected objects and their details
+    objects = [{'name': obj[0], 'confidence': obj[1]} for obj in result.names[0]]
+    
+    return image, objects
 
 
 @st.cache_resource
