@@ -134,13 +134,15 @@ def infer_image(img, size=None):
     return image, objects
 
 
-
 @st.cache_resource
 def load_model(path):
-    model_ = torch.hub.load('ultralytics/yolov5', 'custom', path=path, force_reload=True)
-    model_.to('cpu')  # Assume CPU for simplicity
-    print("model to CPU")
-    return model_
+    try:
+        model_ = torch.hub.load('ultralytics/yolov5', 'custom', path=path, force_reload=True)
+        return model_
+    except Exception as e:
+        st.error(f"Error loading the YOLOv5 model: {str(e)}")
+        return None
+
 
 def load_custom_model(model_path):
     model = torch.load(model_path, map_location='cpu')  # Assume CPU for simplicity
