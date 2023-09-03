@@ -50,7 +50,6 @@ def image_input(data_src):
             img = infer_image(img_file)
             st.image(img, caption="Model prediction")
 
-
 def video_input(data_src):
     vid_file = None
     if data_src == 'Sample data':
@@ -72,7 +71,7 @@ def video_input(data_src):
             height = st.sidebar.number_input("Height", min_value=120, step=20, value=height)
 
         fps = 0
-        st1, st2, st3 = st.columns(3)
+        st1, st2, st3, st4 = st.columns(4)  # Add an additional column for time
         with st1:
             st.markdown("## Height")
             st1_text = st.markdown(f"{height}")
@@ -82,11 +81,15 @@ def video_input(data_src):
         with st3:
             st.markdown("## FPS")
             st3_text = st.markdown(f"{fps:.2f}")
+        with st4:
+            st.markdown("## Time")
+            st4_text = st.markdown("00:00:00")  # Initialize with 0 time
 
         st.markdown("---")
         output = st.empty()
         prev_time = 0
         curr_time = 0
+        total_time = 0
 
         frame_skip = 5  # Adjust frame skipping as needed
         frame_count = 0
@@ -111,8 +114,15 @@ def video_input(data_src):
                 unique_detected_objects.update(object_names)
 
                 curr_time = time.time()
-                fps = 1 / (curr_time - prev_time)
+                elapsed_time = curr_time - prev_time
+                total_time += elapsed_time
                 prev_time = curr_time
+
+                # Format elapsed_time to display as HH:MM:SS
+                formatted_time = time.strftime("%H:%M:%S", time.gmtime(total_time))
+                st4_text.markdown(f"**{formatted_time}**")
+
+                fps = 1 / elapsed_time
                 st1_text.markdown(f"**{height}**")
                 st2_text.markdown(f"**{width}**")
                 st3_text.markdown(f"**{fps:.2f}**")
@@ -123,7 +133,6 @@ def video_input(data_src):
         st.subheader("Unique Detected Objects")
         for obj in unique_detected_objects:
             st.write(obj)
-
 
 
 def infer_image(img, size=None):
