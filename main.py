@@ -86,7 +86,7 @@ def video_input(data_src):
 
         frame_skip = 5  # Adjust frame skipping as needed
         frame_count = 0
-        detected_objects = []  # To store detected objects
+        unique_detected_objects = set()  # To store unique detected objects
 
         while True:
             ret, frame = cap.read()
@@ -102,10 +102,9 @@ def video_input(data_src):
                 output_img, objects = infer_image(frame)
                 output.image(output_img)
 
-                # Extract object names
+                # Extract object names and add to the set
                 object_names = [obj['name'] for obj in objects]
-
-                detected_objects.extend(object_names)
+                unique_detected_objects.update(object_names)
 
                 curr_time = time.time()
                 fps = 1 / (curr_time - prev_time)
@@ -116,9 +115,9 @@ def video_input(data_src):
 
         cap.release()
 
-        # Display list of detected objects at the end of the video
-        st.subheader("Detected Objects")
-        for obj in detected_objects:
+        # Display the unique list of detected objects at the end of the video
+        st.subheader("Unique Detected Objects")
+        for obj in unique_detected_objects:
             st.write(obj)
 
 
