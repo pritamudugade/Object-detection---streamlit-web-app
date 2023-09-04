@@ -23,13 +23,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Author details
-st.sidebar.markdown("Author: MobiNext Technologies")
-st.sidebar.markdown("Task: Real-time object detection")
-
-# Create a box for FPS
-fps_box = st.sidebar.empty()
-
 def image_input(data_src):
     img_file = None
     if data_src == 'Sample data':
@@ -94,7 +87,7 @@ def video_input(data_src):
             curr_time = time.time()
             fps = 1 / (curr_time - prev_time)
             prev_time = curr_time
-            fps_box.text(f'FPS: {fps:.2f}')
+            st.text(f'FPS: {fps:.2f}')
 
         cap.release()
 
@@ -141,15 +134,6 @@ def get_user_model():
 
 def main():
     global model, confidence, cfg_model_path
-
-    # Sidebar with custom settings
-    st.sidebar.title("Custom settings")
-    user_model_path = get_user_model()
-    if user_model_path:
-        cfg_model_path = user_model_path
-
-    st.sidebar.text(cfg_model_path.split("/")[-1])
-    st.sidebar.markdown("---")
 
     if not os.path.isfile(cfg_model_path):
         st.warning("Model file not available!!!, please add it to the model folder.", icon="⚠️")
