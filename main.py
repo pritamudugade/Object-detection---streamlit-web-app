@@ -6,7 +6,9 @@ import torch
 import cv2
 import os
 import time
+
 import torch
+torch.hub._reset()
 
 st.set_page_config(layout="wide")
 
@@ -17,12 +19,6 @@ confidence = .25
 # Author details
 st.sidebar.markdown("Author: MobiNext Technologies")
 st.sidebar.markdown("Task: Real-time object detection")
-
-# Initialize total_time
-total_time = 0
-
-# Create a text element for displaying total time
-total_time_text = st.sidebar.empty()
 
 def image_input(data_src):
     img_file = None
@@ -93,6 +89,7 @@ def video_input(data_src):
         output = st.empty()
         prev_time = 0
         curr_time = 0
+        total_time = 0
 
         frame_skip = 5  # Adjust frame skipping as needed
         frame_count = 0
@@ -138,12 +135,6 @@ def video_input(data_src):
         unique_objects_text = ", ".join(unique_objects_list)
         st.write(unique_objects_text)
 
-
-def time_widget():
-    st.sidebar.markdown("## Time")
-    st.sidebar.markdown("00:00:00")  # Initialize with 0 time
-
-
 def infer_image(img, size=None):
     model.conf = confidence
     result = model(img, size=size) if size else model(img)
@@ -155,7 +146,6 @@ def infer_image(img, size=None):
     
     return image, objects
 
-
 @st.cache_resource
 def load_model(path):
     try:
@@ -164,7 +154,6 @@ def load_model(path):
     except Exception as e:
         st.error(f"Error loading the YOLOv5 model: {str(e)}")
         return None
-
 
 def load_custom_model(model_path):
     model = torch.load(model_path, map_location='cpu')  # Assume CPU for simplicity
@@ -197,45 +186,4 @@ def main():
     global model, confidence, cfg_model_path
 
     # Center-align the title
-    st.markdown("<h1 style='text-align: center;'>VAMS-MobiNext</h1>", unsafe_allow_html=True)
-
-    st.sidebar.title("Custom settings")
-
-    user_model_path = get_user_model()
-    if user_model_path:
-        cfg_model_path = user_model_path
-
-    st.sidebar.markdown("---")
-
-    if not os.path.isfile(cfg_model_path):
-        st.warning("Model file not available!!!, please add it to the model folder.", icon="⚠️")
-    else:
-        model = load_model(cfg_model_path)
-        confidence = st.sidebar.slider('Confidence', min_value=0.1, max_value=1.0, value=0.45)
-
-        if st.sidebar.checkbox("Custom Classes"):
-            model_names = list(model.names.values())
-            assigned_class = st.sidebar.multiselect("Select Classes", model_names, default=[model_names[0]])
-            classes = [model_names.index(name) for name in assigned_class]
-            model.classes = classes
-        else:
-            model.classes = list(model.names.keys())
-
-        st.sidebar.markdown("---")
-
-        input_option = st.sidebar.radio("Select input type: ", ['Image', 'Video'])
-        data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload data from the local system'])
-
-        if input_option == 'Image':
-            image_input(data_src)
-        else:
-            video_input(data_src)
-
-    # Add time widget to the main web page
-    time_widget()
-
-if __name__ == "__main__":
-    try:
-        main()
-    except SystemExit:
-        pass
+    st.markdown("<h1 style='text-align: center;'>
