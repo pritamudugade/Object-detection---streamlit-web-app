@@ -15,6 +15,10 @@ model = None
 confidence = .25
 
 
+# Author details
+st.sidebar.markdown("Author: MobiNext Technologies")
+st.sidebar.markdown("Task: Real-time object detection")
+
 def image_input(data_src):
     img_file = None
     if data_src == 'Sample data':
@@ -145,9 +149,11 @@ def get_user_model():
 def main():
     global model, confidence, cfg_model_path
 
+    # Centered title
     st.title("VAMS-MobiNext")
-    st.sidebar.title("Custom settings")
 
+    # Sidebar with custom settings
+    st.sidebar.title("Custom settings")
     user_model_path = get_user_model()
     if user_model_path:
         cfg_model_path = user_model_path
@@ -178,6 +184,12 @@ def main():
             image_input(data_src)
         else:
             video_input(data_src)
+
+    # List of detected objects
+    if hasattr(model, "results") and len(model.results.pred[0]):
+        st.markdown("## Detected Objects")
+        detected_objects = set(model.results.names[0])
+        st.write(list(detected_objects))
 
 if __name__ == "__main__":
     try:
