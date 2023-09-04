@@ -8,6 +8,20 @@ import cv2
 import os
 import time
 
+# Center-align the page content
+st.markdown(
+    """
+    <style>
+    .reportview-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 st.set_page_config(layout="wide")
 
 cfg_model_path = 'models/yolov5s.pt'
@@ -178,7 +192,7 @@ def main():
         st.sidebar.markdown("---")
 
         input_option = st.sidebar.radio("Select input type: ", ['Image', 'Video'])
-        data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload data from local system'])
+        data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload data from the local system'])
 
         if input_option == 'Image':
             image_input(data_src)
