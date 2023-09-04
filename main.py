@@ -120,13 +120,11 @@ def infer_image(img, size=None, return_objects=False):
         for label, conf, bbox in zip(result.names[0], result.pred[0][:, 4].tolist(), result.pred[0][:, :4].tolist()):
             detected_objects.append({
                 'label': label,
-                'confidence': conf,
-                'bbox': bbox
+                'confidence': conf
             })
         return image, detected_objects
 
     return image
-
 
 def save_detected_objects(objects):
     # You can customize the file path and format as needed
