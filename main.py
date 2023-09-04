@@ -8,26 +8,23 @@ import cv2
 import os
 import time
 
-# Center-align the page content
-st.markdown(
-    """
-    <style>
-    .reportview-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
+st.set_page_config(layout="wide")
 
 
 cfg_model_path = 'models/yolov5s.pt'
 model = None
 confidence = .25
 
+
+# Centered title with HTML and CSS
+st.markdown(
+    """
+    <div style="display: flex; justify-content: center;">
+        <h1>VAMS-MobiNext</h1>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 # Author details
 st.sidebar.markdown("Author: MobiNext Technologies")
