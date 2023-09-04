@@ -8,7 +8,14 @@ import time
 
 st.set_page_config(layout="wide")
 
+# Specify the model path here
 cfg_model_path = 'models/yolov5s.pt'
+
+# Check if the model file exists
+if not os.path.isfile(cfg_model_path):
+    st.error("Model file not found at the specified path. Please ensure the model file exists.")
+    st.stop()
+
 model = None
 confidence = .25
 
