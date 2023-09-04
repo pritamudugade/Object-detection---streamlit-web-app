@@ -91,7 +91,7 @@ def video_input(data_src):
             curr_time = time.time()
             fps = 1 / (curr_time - prev_time)
             prev_time = curr_time
-            st.write(f"FPS: {fps:.2f}", use_container_width=True)  # Display the FPS inline
+            st.markdown(f'<div style="display: flex; justify-content: flex-end;"><p style="font-size: 24px;">FPS: {fps:.2f}</p></div>', unsafe_allow_html=True)
 
         cap.release()
 
@@ -171,12 +171,6 @@ def main():
             image_input(data_src)
         else:
             video_input(data_src)
-
-    # List of detected objects
-    if hasattr(model, "results") and len(model.results.pred[0]):
-        st.markdown("## Detected Objects")
-        detected_objects = set(model.results.names[0])
-        st.write(list(detected_objects))
 
 if __name__ == "__main__":
     try:
