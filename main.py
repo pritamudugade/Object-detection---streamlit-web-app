@@ -1,3 +1,4 @@
+
 import streamlit as st
 import glob
 import wget
@@ -11,6 +12,10 @@ st.set_page_config(layout="wide")
 cfg_model_path = 'models/yolov5s.pt'
 model = None
 confidence = .25
+
+# Author details
+st.sidebar.markdown("Author: MobiNext Technologies")
+st.sidebar.markdown("Task: Real-time object detection")
 
 # Centered title with HTML and CSS
 st.markdown(
@@ -33,6 +38,8 @@ def image_input(data_src):
                 img_file = img_path[img_slider - 1]
             else:
                 st.error("Invalid image selection.")
+        else:
+            st.error("please select desired option")
     else:
         img_bytes = st.sidebar.file_uploader("Upload an image", type=['png', 'jpeg', 'jpg'])
         if img_bytes:
@@ -124,6 +131,15 @@ def main():
         input_option = st.sidebar.radio("Select input type: ", ['Image', 'Video'])
         data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload data from the local system'])
 
+        # Custom Classes
+        if st.sidebar.checkbox("Custom Classes"):
+            model_names = list(model.names.values())
+            assigned_class = st.sidebar.multiselect("Select Classes", model_names, default=[model_names[0]])
+            classes = [model_names.index(name) for name in assigned_class]
+            model.classes = classes
+        else:
+            model.classes = list(model.names.keys())
+
         if input_option == 'Image':
             image_input(data_src)
         else:
@@ -134,6 +150,7 @@ if __name__ == "__main__":
         main()
     except SystemExit:
         pass
+
 
 # Add author details at the bottom
 st.markdown("<br><br>", unsafe_allow_html=True)  # Create some space
