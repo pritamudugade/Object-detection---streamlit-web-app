@@ -8,16 +8,9 @@ import time
 
 st.set_page_config(layout="wide")
 
-# Specify the model path here
-cfg_model_path = 'models/yolov5s.pt'
-
-# Check if the model file exists
-if not os.path.isfile(cfg_model_path):
-    st.error("Model file not found at the specified path. Please ensure the model file exists.")
-    st.stop()
-
+cfg_model_path = 'models/yolov5s.pt'  # Path to your YOLOv5 model file
 model = None
-confidence = .25
+confidence = 0.25
 
 # Author details
 st.sidebar.markdown("Author: MobiNext Technologies")
@@ -26,7 +19,6 @@ st.sidebar.markdown("Task: Real-time object detection")
 def image_input(data_src):
     img_file = None
     if data_src == 'Sample data':
-        # get all sample images
         img_path = glob.glob('data/sample_images/*')
         if img_path:
             img_slider = st.slider("Select a test image.", min_value=1, max_value=len(img_path), step=1)
@@ -35,67 +27,65 @@ def image_input(data_src):
             else:
                 st.error("Invalid image selection.")
         else:
-            st.error("")
-
-    # Center-align the widgets
-    st.markdown("---")
-    col1, col2, col3 = st.columns(3)
-
-    if data_src != 'Sample data':
-        with col1:
-            st.markdown("## Height")
-            height = st.number_input("Height", min_value=120, step=20, value=720)
-
-        with col2:
-            st.markdown("## Width")
-            width = st.number_input("Width", min_value=120, step=20, value=1280)
-
-        with col3:
-            st.markdown("## FPS")
-            fps = st.number_input("FPS", min_value=1, step=1, value=30)
+            st.error("No sample images available.")
+    else:
+        img_bytes = st.sidebar.file_uploader("Upload an image", type=['png', 'jpeg', 'jpg'])
+        if img_bytes:
+            img_file = "data/uploaded_data/upload." + img_bytes.name.split('.')[-1]
+            Image.open(img_bytes).save(img_file)
 
     if img_file:
         col1, col2 = st.columns(2)
         with col1:
             st.image(img_file, caption="Selected Image")
         with col2:
-            img = infer_image(img_file, height, width, fps)
+            img = infer_image(img_file)
             st.image(img, caption="Model prediction")
 
 def video_input(data_src):
     vid_file = None
     if data_src == 'Sample data':
         vid_file = "data/sample_videos/sample.mp4"
-
-    # Center-align the widgets
-    st.markdown("---")
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.markdown("## Height")
-        height = st.number_input("Height", min_value=120, step=20, value=720)
-
-    with col2:
-        st.markdown("## Width")
-        width = st.number_input("Width", min_value=120, step=20, value=1280)
-
-    with col3:
-        st.markdown("## FPS")
-        fps = st.number_input("FPS", min_value=1, step=1, value=30)
+    else:
+        vid_bytes = st.sidebar.file_uploader("Upload a video", type=['mp4', 'mpv', 'avi'])
+        if vid_bytes:
+            vid_file = "data/uploaded_data/upload." + vid_bytes.name.split('.')[-1]
+            with open(vid_file, 'wb') as out:
+                out.write(vid_bytes.read())
 
     if vid_file:
         cap = cv2.VideoCapture(vid_file)
+        custom_size = st.sidebar.checkbox("Custom frame size")
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        if custom_size:
+            width = st.sidebar.number_input("Width", min_value=120, step=20, value=width)
+            height = st.sidebar.number_input("Height", min_value=120, step=20, value=height)
 
-        st1, st2 = st.columns(2)
+        fps = 0
+        st1, st2, st3, st4 = st.columns(4)  # Widgets for Height, Width, FPS, and Total Time
         with st1:
-            st.image("", caption="Video Input")
+            st.markdown("## Height")
+            st1_text = st.markdown(f"{height}")
+        with st2:
+            st.markdown("## Width")
+            st2_text = st.markdown(f"{width}")
+        with st3:
+            st.markdown("## FPS")
+            st3_text = st.markdown(f"{fps:.2f}")
+        with st4:
+            st.markdown("## Total Time")
+            st4_text = st.markdown("00:00:00")  # Initialize with 0 time
 
         st.markdown("---")
         output = st.empty()
         prev_time = 0
         curr_time = 0
+        total_time = 0
 
         frame_skip = 5  # Adjust frame skipping as needed
+        frame_count = 0
+        unique_detected_objects = set()  # To store unique detected objects
 
         while True:
             ret, frame = cap.read()
@@ -103,51 +93,87 @@ def video_input(data_src):
                 st.write("Can't read frame...")
                 break
 
-            frame = cv2.resize(frame, (width, height))
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            output_img, objects = infer_image(frame, height, width, fps)
-            output.image(output_img, caption="Model prediction")
+            frame_count += 1
 
-def infer_image(img, height, width, fps):
+            if frame_count % frame_skip == 0:
+                frame = cv2.resize(frame, (width, height))
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                output_img, objects = infer_image(frame)
+                output.image(output_img)
+
+                object_names = [obj['name'] for obj in objects]
+                unique_detected_objects.update(object_names)
+
+                curr_time = time.time()
+                elapsed_time = curr_time - prev_time
+                total_time += elapsed_time
+                prev_time = curr_time
+
+                formatted_time = time.strftime("%H:%M:%S", time.gmtime(total_time))
+                st4_text.markdown(f"**{formatted_time}**")
+
+                fps = 1 / elapsed_time
+                st1_text.markdown(f"**{height}**")
+                st2_text.markdown(f"**{width}**")
+                st3_text.markdown(f"**{fps:.2f}**")
+
+        cap.release()
+
+        unique_objects_list = list(unique_detected_objects)
+        st.subheader("Unique Detected Objects")
+        unique_objects_text = ", ".join(unique_objects_list)
+        st.write(unique_objects_text)
+
+def infer_image(img, size=None):
     model.conf = confidence
-    result = model(img, size=(height, width), fps=fps)
+    result = model(img, size=size) if size else model(img)
     result.render()
     image = Image.fromarray(result.ims[0])
     
-    return image
-
-@st.cache_resource
-def load_model(path):
-    try:
-        model_ = torch.hub.load('ultralytics/yolov5', 'custom', path=path, force_reload=True)
-        return model_
-    except Exception as e:
-        st.error(f"Error loading the YOLOv5 model: {str(e)}")
-        return None
+    objects = [{'name': model.names[int(obj[5])], 'confidence': obj[4]} for obj in result.xyxy[0]]
+    
+    return image, objects
 
 def main():
     global model, confidence, cfg_model_path
 
-    # Center-align the title
     st.markdown("<h1 style='text-align: center;'>VAMS-MobiNext</h1>", unsafe_allow_html=True)
 
     st.sidebar.title("Custom settings")
 
-    if not os.path.isfile(cfg_model_path):
-        st.warning("Model file not available!!!, please add it to the model folder.", icon="⚠️")
-    else:
-        model = load_model(cfg_model_path)
-        confidence = st.sidebar.slider('Confidence', min_value=0.1, max_value=1.0, value=0.45)
-
+    user_model_path = cfg_model_path
     st.sidebar.markdown("---")
 
-    input_option = st.sidebar.radio("Select input type: ", ['Image', 'Video'])
-    data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload data from local system'])
-
-    if input_option == 'Image':
-        image_input(data_src)
+    if not os.path.isfile(user_model_path):
+        st.warning("Model file not available! Please add it to the 'models' folder.", icon="⚠️")
     else:
-        video_input(data_src)
+        model = load_model(user_model_path)
+        confidence = st.sidebar.slider('Confidence', min_value=0.1, max_value=1.0, value=0.45)
+
+        if st.sidebar.checkbox("Custom Classes"):
+            model_names = list(model.names.values())
+            assigned_class = st.sidebar.multiselect("Select Classes", model_names, default=[model_names[0]])
+            classes = [model_names.index(name) for name in assigned_class]
+            model.classes = classes
+        else:
+            model.classes = list(model.names.keys())
+
+        st.sidebar.markdown("---")
+
+        input_option = st.sidebar.radio("Select input type: ", ['Image', 'Video'])
+        data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload data from local system'])
+
+        if input_option == 'Image':
+            image_input(data_src)
+        else:
+            video_input(data_src)
+
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("## Time")
+    st.sidebar.markdown("00:00:00")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except SystemExit:
+        pass
