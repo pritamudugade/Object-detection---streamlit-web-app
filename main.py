@@ -6,9 +6,7 @@ import torch
 import cv2
 import os
 import time
-
 import torch
-torch.hub._reset()
 
 st.set_page_config(layout="wide")
 
