@@ -160,9 +160,6 @@ def get_user_model():
 def main():
     global model, confidence, cfg_model_path
 
-    # Centered title
-    st.title("VAMS-MobiNext")
-
     # Sidebar with custom settings
     st.sidebar.title("Custom settings")
     user_model_path = get_user_model()
