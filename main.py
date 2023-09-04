@@ -53,15 +53,7 @@ def image_input(data_src):
             st.image(img, caption="Model prediction")
 
 def video_input(data_src):
-    vid_file = None
-    if data_src == 'Sample data':
-        vid_file = "data/sample_videos/sample.mp4"
-    else:
-        vid_bytes = st.sidebar.file_uploader("Upload a video", type=['mp4', 'mpv', 'avi'])
-        if vid_bytes:
-            vid_file = "data/uploaded_data/upload." + vid_bytes.name.split('.')[-1]
-            with open(vid_file, 'wb') as out:
-                out.write(vid_bytes.read())
+    # ... (previous code)
 
     if vid_file:
         cap = cv2.VideoCapture(vid_file)
@@ -131,11 +123,12 @@ def video_input(data_src):
 
         cap.release()
 
-        # Display the unique detected objects inline with numbers
+        # Display the unique detected objects in a comma-separated format
         unique_objects_list = list(unique_detected_objects)
         st.subheader("Unique Detected Objects")
-        for i, obj in enumerate(unique_objects_list, start=1):
-            st.write(f"{i}. {obj}")
+        unique_objects_text = ", ".join(unique_objects_list)
+        st.write(unique_objects_text)
+
 def time_widget():
     st.sidebar.markdown("## Time")
     st.sidebar.markdown("00:00:00")  # Initialize with 0 time
