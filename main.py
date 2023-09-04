@@ -12,6 +12,10 @@ cfg_model_path = 'models/yolov5s.pt'
 model = None
 confidence = .25
 
+# Author details
+st.sidebar.markdown("Author: MobiNext Technologies")
+st.sidebar.markdown("Task: Real-time object detection")
+
 # Centered title with HTML and CSS
 st.markdown(
     """
@@ -145,3 +149,8 @@ if __name__ == "__main__":
         main()
     except SystemExit:
         pass
+
+
+# Add author details at the bottom
+st.markdown("<br><br>", unsafe_allow_html=True)  # Create some space
+st.markdown("<p style='text-align: center;'>Created by MobiNext Technologies</p>", unsafe_allow_html=True)
