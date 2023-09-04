@@ -27,6 +27,9 @@ st.markdown(
 st.sidebar.markdown("Author: MobiNext Technologies")
 st.sidebar.markdown("Task: Real-time object detection")
 
+# Create a box for FPS
+fps_box = st.sidebar.empty()
+
 def image_input(data_src):
     img_file = None
     if data_src == 'Sample data':
@@ -91,7 +94,7 @@ def video_input(data_src):
             curr_time = time.time()
             fps = 1 / (curr_time - prev_time)
             prev_time = curr_time
-            st.markdown(f'<div style="display: flex; justify-content: flex-end;"><p style="font-size: 24px;">FPS: {fps:.2f}</p></div>', unsafe_allow_html=True)
+            fps_box.text(f'FPS: {fps:.2f}')
 
         cap.release()
 
