@@ -81,6 +81,8 @@ def video_input(data_src):
         output = st.empty()
         prev_time = 0
         curr_time = 0
+        unique_detected_objects = set()  # To store unique detected objects
+
         while True:
             ret, frame = cap.read()
             if not ret:
@@ -88,7 +90,7 @@ def video_input(data_src):
                 break
             frame = cv2.resize(frame, (width, height))
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            output_img = infer_image(frame)
+            output_img, objects = infer_image(frame)
             output.image(output_img)
             curr_time = time.time()
             fps = 1 / (curr_time - prev_time)
@@ -97,62 +99,31 @@ def video_input(data_src):
             st2_text.markdown(f"**{width}**")
             st3_text.markdown(f"**{fps:.2f}**")
 
+            # Extract object names and add to the set
+            object_names = [obj['name'] for obj in objects]
+            unique_detected_objects.update(object_names)
+
         cap.release()
 
-
-
+        # Display the unique detected objects in a list format
+        st.subheader("Unique Detected Objects")
+        unique_objects_list = list(unique_detected_objects)
+        st.write(unique_objects_list)
 
 def infer_image(img, size=None):
     model.conf = confidence
     result = model(img, size=size) if size else model(img)
     result.render()
     image = Image.fromarray(result.ims[0])
-    return image
-
-
-@st.cache_resource
-def load_model(path, device):
-    model_ = torch.hub.load('ultralytics/yolov5', 'custom', path=path, force_reload=True)
-    model_.to(device)
-    print("model to ", device)
-    return model_
-
-
-def load_custom_model(model_path, device):
-    model = torch.load(model_path, map_location=device)
-    model.eval()
-    return model
-
-
-@st.cache_resource
-def download_model(url):
-    model_file = wget.download(url, out="models")
-    return model_file
-
-
-def get_user_model():
-    model_src = st.sidebar.radio("Model source", ["file upload", "url"])
-    model_file = None
-    if model_src == "file upload":
-        model_bytes = st.sidebar.file_uploader("Upload a model file", type=['pt'])
-        if model_bytes:
-            model_file = "models/uploaded_" + model_bytes.name
-            with open(model_file, 'wb') as out:
-                out.write(model_bytes.read())
-    else:
-        url = st.sidebar.text_input("model url")
-        if url:
-            model_file_ = download_model(url)
-            if model_file_.split(".")[-1] == "pt":
-                model_file = model_file_
-
-    return model_file
+    
+    # Extract detected objects and their details
+    objects = [{'name': model.names[int(obj[5])], 'confidence': obj[4]} for obj in result.xyxy[0]]
+    
+    return image, objects
 
 # Default values
 default_input_option = 'video'
 default_data_src = 'Upload data from local system'
-
-
 
 def main():
     # global variables
@@ -161,11 +132,6 @@ def main():
     st.title("Object Detection Webapp")
 
     st.sidebar.title("Custom settings")
-
-    # Initialize device_option
-    device_option = 'cpu'
-
-    
 
     # upload model
     model_src = st.sidebar.radio("Select weight file", ["Custom model", "YOLO"])
@@ -185,26 +151,11 @@ def main():
     if not os.path.isfile(cfg_model_path):
         st.warning("Model file not available!!!, please add it to the model folder.", icon="⚠️")
     else:
-        # device options
-        if torch.cuda.is_available():
-            device_option = st.sidebar.radio("Select Device", ['cpu', 'GPU'], disabled=False, index=0)
-        else:
-            device_option = st.sidebar.radio("Select Device", ['cpu', 'GPU'], disabled=True, index=0)
-
         # load model
         model = load_model(cfg_model_path, device_option)
 
         # confidence slider
         confidence = st.sidebar.slider('Confidence', min_value=0.1, max_value=1.0, value=.45)
-
-        # custom classes
-        if st.sidebar.checkbox("Custom Classes"):
-            model_names = list(model.names.values())
-            assigned_class = st.sidebar.multiselect("Select Classes", model_names, default=[model_names[0]])
-            classes = [model_names.index(name) for name in assigned_class]
-            model.classes = classes
-        else:
-            model.classes = list(model.names.keys())
 
         st.sidebar.markdown("---")
 
