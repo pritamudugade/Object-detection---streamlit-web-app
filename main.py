@@ -22,7 +22,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.set_page_config(layout="wide")
+
 
 cfg_model_path = 'models/yolov5s.pt'
 model = None
