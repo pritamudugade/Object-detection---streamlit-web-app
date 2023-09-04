@@ -103,11 +103,20 @@ def video_input(data_src):
 
         # Display the list of unique detected objects at the end
         st.write("Unique Detected Objects:")
-        for idx, obj in enumerate(detected_objects, start=1):
-            st.write(f"{idx}. Label: {obj['label']}, Confidence: {obj['confidence']:.2f}")
+        unique_objects = {}  # Store unique objects in a dictionary with label as key and max confidence as value
+        for obj in detected_objects:
+            label = obj['label']
+            confidence = obj['confidence']
+            if label in unique_objects:
+                # Update the confidence if a higher confidence is detected for the same label
+                if confidence > unique_objects[label]:
+                    unique_objects[label] = confidence
+            else:
+                unique_objects[label] = confidence
 
-        # Optional: Save unique detected objects to a file
-        save_detected_objects(detected_objects)
+        for idx, (label, confidence) in enumerate(unique_objects.items(), start=1):
+            st.write(f"{idx}. Label: {label}, Confidence: {confidence:.2f}")
+
 
 def infer_image(img, size=None, return_objects=False):
     model.conf = confidence
