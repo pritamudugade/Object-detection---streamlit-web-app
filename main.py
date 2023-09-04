@@ -39,7 +39,7 @@ def image_input(data_src):
             else:
                 st.error("Invalid image selection.")
         else:
-            st.error("please select desired option")
+            st.error("")
     else:
         img_bytes = st.sidebar.file_uploader("Upload an image", type=['png', 'jpeg', 'jpg'])
         if img_bytes:
