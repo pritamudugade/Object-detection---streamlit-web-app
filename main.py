@@ -1,3 +1,6 @@
+import torch
+torch.hub._reset()
+
 import streamlit as st
 import glob
 import wget
