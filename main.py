@@ -21,7 +21,7 @@ st.sidebar.markdown("Task: Real-time object detection")
 st.markdown(
     """
     <div style="display: flex; justify-content: center;">
-        <h1>VAMS-MobiNext</h1>
+        <h1>VAMS-MobiNext Tech</h1>
     </div>
     """,
     unsafe_allow_html=True
