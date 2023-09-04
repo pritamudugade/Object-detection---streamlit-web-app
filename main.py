@@ -13,9 +13,6 @@ cfg_model_path = 'models/yolov5s.pt'
 model = None
 confidence = .25
 
-# Author details
-st.sidebar.markdown("Author: MobiNext Technologies")
-st.sidebar.markdown("Task: Real-time object detection")
 
 def image_input(data_src):
     img_file = None
@@ -29,7 +26,7 @@ def image_input(data_src):
             else:
                 st.error("Invalid image selection.")
         else:
-            st.error("please select desired option")
+            st.error("please select the desired option")
     else:
         img_bytes = st.sidebar.file_uploader("Upload an image", type=['png', 'jpeg', 'jpg'])
         if img_bytes:
@@ -81,7 +78,7 @@ def video_input(data_src):
         output = st.empty()
         prev_time = 0
         curr_time = 0
-        unique_detected_objects = set()  # To store unique detected objects
+        detected_objects = []
 
         while True:
             ret, frame = cap.read()
@@ -90,7 +87,7 @@ def video_input(data_src):
                 break
             frame = cv2.resize(frame, (width, height))
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            output_img, objects = infer_image(frame)
+            output_img, objects = infer_image(frame, return_objects=True)
             output.image(output_img)
             curr_time = time.time()
             fps = 1 / (curr_time - prev_time)
@@ -99,37 +96,88 @@ def video_input(data_src):
             st2_text.markdown(f"**{width}**")
             st3_text.markdown(f"**{fps:.2f}**")
 
-            # Extract object names and add to the set
-            object_names = [obj['name'] for obj in objects]
-            unique_detected_objects.update(object_names)
+            # Collect detected objects
+            detected_objects.extend(objects)
 
         cap.release()
 
-        # Display the unique detected objects in a list format
-        st.subheader("Unique Detected Objects")
-        unique_objects_list = list(unique_detected_objects)
-        st.write(unique_objects_list)
+        # Display the list of detected objects at the end
+        st.write("Total Detected Objects:")
+        for idx, obj in enumerate(detected_objects, start=1):
+            st.write(f"{idx}. Label: {obj['label']}, Confidence: {obj['confidence']:.2f}, Bounding Box: {obj['bbox']}")
 
-def infer_image(img, size=None):
+
+
+
+def infer_image(img, size=None, return_objects=False):
     model.conf = confidence
     result = model(img, size=size) if size else model(img)
     result.render()
     image = Image.fromarray(result.ims[0])
-    
-    # Extract detected objects and their details
-    objects = [{'name': model.names[int(obj[5])], 'confidence': obj[4]} for obj in result.xyxy[0]]
-    
-    return image, objects
+
+    if return_objects:
+        detected_objects = []
+        for label, conf, bbox in zip(result.names[0], result.pred[0][:, 4].tolist(), result.pred[0][:, :4].tolist()):
+            detected_objects.append({
+                'label': label,
+                'confidence': conf,
+                'bbox': bbox
+            })
+        return image, detected_objects
+
+    return image
+
+
+@st.cache_resource
+def load_model(path, device):
+    model_ = torch.hub.load('ultralytics/yolov5', 'custom', path=path, force_reload=True)
+    model_.to(device)
+    print("model to ", device)
+    return model_
+
+
+def load_custom_model(model_path, device):
+    model = torch.load(model_path, map_location=device)
+    model.eval()
+    return model
+
+
+@st.cache_resource
+def download_model(url):
+    model_file = wget.download(url, out="models")
+    return model_file
+
+
+def get_user_model():
+    model_src = st.sidebar.radio("Model source", ["file upload", "url"])
+    model_file = None
+    if model_src == "file upload":
+        model_bytes = st.sidebar.file_uploader("Upload a model file", type=['pt'])
+        if model_bytes:
+            model_file = "models/uploaded_" + model_bytes.name
+            with open(model_file, 'wb') as out:
+                out.write(model_bytes.read())
+    else:
+        url = st.sidebar.text_input("model url")
+        if url:
+            model_file_ = download_model(url)
+            if model_file_.split(".")[-1] == "pt":
+                model_file = model_file_
+
+    return model_file
 
 # Default values
 default_input_option = 'video'
-default_data_src = 'Upload data from local system'
+default_data_src = 'Upload data from the local system'
+
+
 
 def main():
     # global variables
     global model, confidence, cfg_model_path
 
-    st.title("Object Detection Webapp")
+    # Center the headline
+    st.markdown("<h1 style='text-align: center;'>Object Detection Webapp</h1>", unsafe_allow_html=True)
 
     st.sidebar.title("Custom settings")
 
@@ -145,17 +193,26 @@ def main():
         st.sidebar.markdown("---")
 
         # Load the custom model
-        model = load_custom_model(cfg_model_path, device_option)
+        model = load_custom_model(cfg_model_path, 'cpu')
 
     # check if model file is available
     if not os.path.isfile(cfg_model_path):
         st.warning("Model file not available!!!, please add it to the model folder.", icon="⚠️")
     else:
-        # load model
-        model = load_model(cfg_model_path, device_option)
+        # Load the model using the selected device (CPU by default)
+        model = load_model(cfg_model_path, 'cpu')
 
         # confidence slider
         confidence = st.sidebar.slider('Confidence', min_value=0.1, max_value=1.0, value=.45)
+
+        # custom classes
+        if st.sidebar.checkbox("Custom Classes"):
+            model_names = list(model.names.values())
+            assigned_class = st.sidebar.multiselect("Select Classes", model_names, default=[model_names[0]])
+            classes = [model_names.index(name) for name in assigned_class]
+            model.classes = classes
+        else:
+            model.classes = list(model.names.keys())
 
         st.sidebar.markdown("---")
 
@@ -163,7 +220,7 @@ def main():
         input_option = st.sidebar.radio("Select input type: ", ['image', 'video'])
 
         # input src option
-        data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload data from local system'])
+        data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload data from the local system'])
 
         if input_option == 'image':
             image_input(data_src)
@@ -176,3 +233,7 @@ if __name__ == "__main__":
         main()
     except SystemExit:
         pass
+
+# Add author details at the bottom
+st.markdown("<br><br>", unsafe_allow_html=True)  # Create some space
+st.markdown("<p style='text-align: center;'>Created by Your Name</p>", unsafe_allow_html=True)
