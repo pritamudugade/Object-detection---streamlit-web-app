@@ -17,15 +17,11 @@ confidence = .25
 st.sidebar.markdown("Author: MobiNext Technologies")
 st.sidebar.markdown("Task: Real-time object detection")
 
-# Add a title
-st.title("Object Detection with VAMS-MobiNext")
-
 # Centered title with HTML and CSS
 st.markdown(
     """
-    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
+    <div style="display: flex; justify-content: center;">
         <h1>VAMS-MobiNext</h1>
-        <p style="text-align: center;">Created by MobiNext Technologies</p>
     </div>
     """,
     unsafe_allow_html=True
