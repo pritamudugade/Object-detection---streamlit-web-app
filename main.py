@@ -1,4 +1,3 @@
-
 import streamlit as st
 import glob
 import wget
@@ -10,11 +9,9 @@ import time
 
 st.set_page_config(layout="wide")
 
-
 cfg_model_path = 'models/yolov5s.pt'
 model = None
 confidence = .25
-
 
 # Centered title with HTML and CSS
 st.markdown(
@@ -57,7 +54,6 @@ def image_input(data_src):
             img = infer_image(img_file)
             st.image(img, caption="Model prediction")
 
-
 def video_input(data_src):
     vid_file = None
     if data_src == 'Sample data':
@@ -79,41 +75,30 @@ def video_input(data_src):
             height = st.sidebar.number_input("Height", min_value=120, step=20, value=height)
 
         fps = 0
-        st1, st2, st3 = st.columns(3)
+        st1, st3 = st.columns([1, 3])  # Adjust the column layout
         with st1:
-            st.markdown("## Height")
-            st1_text = st.markdown(f"{height}")
-        with st2:
-            st.markdown("## Width")
-            st2_text = st.markdown(f"{width}")
-        with st3:
             st.markdown("## FPS")
-            st3_text = st.markdown(f"{fps}")
+            st1_text = st.markdown(f"**{fps:.2f}**")
+        with st3:
+            st.markdown("---")
+            output = st.empty()
+            prev_time = 0
+            curr_time = 0
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    st.write("Can't read frame...")
+                    break
+                frame = cv2.resize(frame, (width, height))
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                output_img = infer_image(frame)
+                output.image(output_img)
+                curr_time = time.time()
+                fps = 1 / (curr_time - prev_time)
+                prev_time = curr_time
+                st1_text.markdown(f"**{fps:.2f}**")
 
-        st.markdown("---")
-        output = st.empty()
-        prev_time = 0
-        curr_time = 0
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                st.write("Can't read frame...")
-                break
-            frame = cv2.resize(frame, (width, height))
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            output_img = infer_image(frame)
-            output.image(output_img)
-            curr_time = time.time()
-            fps = 1 / (curr_time - prev_time)
-            prev_time = curr_time
-            st1_text.markdown(f"**{height}**")
-            st2_text.markdown(f"**{width}**")
-            st3_text.markdown(f"**{fps:.2f}**")
-
-        cap.release()
-
-
-
+            cap.release()
 
 def infer_image(img, size=None):
     model.conf = confidence
@@ -121,7 +106,6 @@ def infer_image(img, size=None):
     result.render()
     image = Image.fromarray(result.ims[0])
     return image
-
 
 @st.cache_resource
 def load_model(path):
