@@ -26,7 +26,7 @@ def image_input(data_src):
             else:
                 st.error("Invalid image selection.")
         else:
-            st.error("")
+            st.error("please select the desired option")
     else:
         img_bytes = st.sidebar.file_uploader("Upload an image", type=['png', 'jpeg', 'jpg'])
         if img_bytes:
@@ -126,7 +126,7 @@ def infer_image(img, size=None, return_objects=False):
 
     if return_objects:
         detected_objects = []
-        for label, conf, bbox in zip(result.names[0], result.pred[0][:, 4].tolist(), result.pred[0][:, :4].tolist()):
+        for label, conf in zip(result.names[0], result.pred[0][:, 4].tolist()):
             detected_objects.append({
                 'label': label,
                 'confidence': conf
@@ -134,12 +134,6 @@ def infer_image(img, size=None, return_objects=False):
         return image, detected_objects
 
     return image
-
-def save_detected_objects(objects):
-    # You can customize the file path and format as needed
-    with open("detected_objects.txt", "w") as file:
-        for obj in objects:
-            file.write(f"Label: {obj['label']}, Confidence: {obj['confidence']:.2f}\n")
 
 
 @st.cache_resource
@@ -190,7 +184,7 @@ def main():
     global model, confidence, cfg_model_path
 
     # Center the headline
-    st.markdown("<h1 style='text-align: center;'>VAMS-MobiNext</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center;'>Object Detection Webapp</h1>", unsafe_allow_html=True)
 
     st.sidebar.title("Custom settings")
 
@@ -246,6 +240,7 @@ if __name__ == "__main__":
         main()
     except SystemExit:
         pass
+
 
 # Add author details at the bottom
 st.markdown("<br><br>", unsafe_allow_html=True)  # Create some space
