@@ -131,12 +131,11 @@ def video_input(data_src):
 
         cap.release()
 
-        # Display the unique list of detected objects at the end of the video in list format
-        st.subheader("Unique Detected Objects")
+        # Display the unique detected objects inline with numbers
         unique_objects_list = list(unique_detected_objects)
-        st.write(unique_objects_list)
-
-
+        st.subheader("Unique Detected Objects")
+        for i, obj in enumerate(unique_objects_list, start=1):
+            st.write(f"{i}. {obj}")
 def time_widget():
     st.sidebar.markdown("## Time")
     st.sidebar.markdown("00:00:00")  # Initialize with 0 time
