@@ -1,3 +1,6 @@
+import torch
+torch.hub._reset()
+
 import streamlit as st
 import glob
 import wget
@@ -7,6 +10,7 @@ import cv2
 import os
 import time
 
+# Import torch separately to avoid conflicts
 import torch
 torch.hub._reset()
 
