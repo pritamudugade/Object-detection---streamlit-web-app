@@ -1,4 +1,3 @@
-
 import streamlit as st
 import glob
 import wget
@@ -11,7 +10,6 @@ import time
 import torch
 torch.hub._reset()
 
-
 st.set_page_config(layout="wide")
 
 cfg_model_path = 'models/yolov5s.pt'
@@ -20,10 +18,13 @@ confidence = .25
 
 # Author details
 st.sidebar.markdown("Author: MobiNext Technologies")
-st.sidebar.markdown("Task: Real time object detection")
+st.sidebar.markdown("Task: Real-time object detection")
 
+# Initialize total_time
+total_time = 0
 
-
+# Create a text element for displaying total time
+total_time_text = st.sidebar.empty()
 
 def image_input(data_src):
     img_file = None
@@ -94,7 +95,6 @@ def video_input(data_src):
         output = st.empty()
         prev_time = 0
         curr_time = 0
-        total_time = 0
 
         frame_skip = 5  # Adjust frame skipping as needed
         frame_count = 0
@@ -226,7 +226,7 @@ def main():
         st.sidebar.markdown("---")
 
         input_option = st.sidebar.radio("Select input type: ", ['Image', 'Video'])
-        data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload data from local system'])
+        data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload data from the local system'])
 
         if input_option == 'Image':
             image_input(data_src)
@@ -235,13 +235,6 @@ def main():
 
     # Add time widget to the main web page
     time_widget()
-
-
-if __name__ == "__main__":
-    try:
-        main()
-    except SystemExit:
-        pass
 
 if __name__ == "__main__":
     try:
