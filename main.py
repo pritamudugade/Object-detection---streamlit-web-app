@@ -1,6 +1,3 @@
-import torch
-torch.hub._reset()
-
 import streamlit as st
 import glob
 import wget
@@ -9,7 +6,9 @@ import torch
 import cv2
 import os
 import time
+
 import torch
+torch.hub._reset()
 
 st.set_page_config(layout="wide")
 
@@ -82,12 +81,15 @@ def video_input(data_src):
         with st4:
             st.markdown("## Total Time")
             st4_text = st.markdown("00:00:00")  # Initialize with 0 time
+        with st5:
+            st.markdown("## New Widget")
+            # Add your new widget here
 
         st.markdown("---")
         output = st.empty()
         prev_time = 0
         curr_time = 0
-        total_time = 0
+        total_time = 0  # Initialize total time
 
         frame_skip = 5  # Adjust frame skipping as needed
         frame_count = 0
@@ -113,12 +115,12 @@ def video_input(data_src):
 
                 curr_time = time.time()
                 elapsed_time = curr_time - prev_time
-                total_time += elapsed_time
+                total_time += elapsed_time  # Add elapsed time to total time
                 prev_time = curr_time
 
                 # Format elapsed_time to display as HH:MM:SS
                 formatted_time = time.strftime("%H:%M:%S", time.gmtime(total_time))
-                st4_text.markdown(f"**{formatted_time}**")
+                st4_text.markdown(f"**{formatted_time}**")  # Update the time widget
 
                 fps = 1 / elapsed_time
                 st1_text.markdown(f"**{height}**")
@@ -132,6 +134,10 @@ def video_input(data_src):
         st.subheader("Unique Detected Objects")
         unique_objects_text = ", ".join(unique_objects_list)
         st.write(unique_objects_text)
+
+def time_widget():
+    st.sidebar.markdown("## Time")
+    st.sidebar.markdown("00:00:00")  # Initialize with 0 time
 
 def infer_image(img, size=None):
     model.conf = confidence
@@ -219,10 +225,7 @@ def main():
             video_input(data_src)
 
     # Add time widget to the main web page
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("## Time")
-    current_time = time.strftime("%H:%M:%S", time.localtime())
-    time_widget = st.sidebar.text(current_time)
+    time_widget()
 
 if __name__ == "__main__":
     try:
