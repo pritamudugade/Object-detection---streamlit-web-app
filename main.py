@@ -53,7 +53,15 @@ def image_input(data_src):
             st.image(img, caption="Model prediction")
 
 def video_input(data_src):
-    # ... (previous code)
+    vid_file = None
+    if data_src == 'Sample data':
+        vid_file = "data/sample_videos/sample.mp4"
+    else:
+        vid_bytes = st.sidebar.file_uploader("Upload a video", type=['mp4', 'mpv', 'avi'])
+        if vid_bytes:
+            vid_file = "data/uploaded_data/upload." + vid_bytes.name.split('.')[-1]
+            with open(vid_file, 'wb') as out:
+                out.write(vid_bytes.read())
 
     if vid_file:
         cap = cv2.VideoCapture(vid_file)
@@ -65,7 +73,7 @@ def video_input(data_src):
             height = st.sidebar.number_input("Height", min_value=120, step=20, value=height)
 
         fps = 0
-        st1, st2, st3, st4 = st.columns(4)  # Add an additional column for time
+        st1, st2, st3, st4, st5 = st.columns(5)  # Add an additional column for the new widget
         with st1:
             st.markdown("## Height")
             st1_text = st.markdown(f"{height}")
@@ -78,6 +86,9 @@ def video_input(data_src):
         with st4:
             st.markdown("## Total Time")
             st4_text = st.markdown("00:00:00")  # Initialize with 0 time
+        with st5:
+            st.markdown("## New Widget")
+            # Add your new widget here
 
         st.markdown("---")
         output = st.empty()
@@ -128,6 +139,7 @@ def video_input(data_src):
         st.subheader("Unique Detected Objects")
         unique_objects_text = ", ".join(unique_objects_list)
         st.write(unique_objects_text)
+
 
 def time_widget():
     st.sidebar.markdown("## Time")
