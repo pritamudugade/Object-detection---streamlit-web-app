@@ -75,30 +75,25 @@ def video_input(data_src):
             height = st.sidebar.number_input("Height", min_value=120, step=20, value=height)
 
         fps = 0
-        st1, st3 = st.columns([1, 3])  # Adjust the column layout
-        with st1:
-            st.markdown("## FPS")
-            st1_text = st.markdown(f"**{fps:.2f}**")
-        with st3:
-            st.markdown("---")
-            output = st.empty()
-            prev_time = 0
-            curr_time = 0
-            while True:
-                ret, frame = cap.read()
-                if not ret:
-                    st.write("Can't read frame...")
-                    break
-                frame = cv2.resize(frame, (width, height))
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                output_img = infer_image(frame)
-                output.image(output_img)
-                curr_time = time.time()
-                fps = 1 / (curr_time - prev_time)
-                prev_time = curr_time
-                st1_text.markdown(f"**{fps:.2f}**")
+        st.markdown("---")
+        output = st.empty()
+        prev_time = 0
+        curr_time = 0
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                st.write("Can't read frame...")
+                break
+            frame = cv2.resize(frame, (width, height))
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            output_img = infer_image(frame)
+            output.image(output_img, use_column_width=True)  # Display the video on full screen
+            curr_time = time.time()
+            fps = 1 / (curr_time - prev_time)
+            prev_time = curr_time
+            st.write(f"FPS: {fps:.2f}", use_container_width=True)  # Display the FPS inline
 
-            cap.release()
+        cap.release()
 
 def infer_image(img, size=None):
     model.conf = confidence
