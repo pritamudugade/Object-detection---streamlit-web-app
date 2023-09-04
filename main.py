@@ -5,13 +5,18 @@ from PIL import Image
 import torch
 import cv2
 import os
-import time
 
 st.set_page_config(layout="wide")
 
 cfg_model_path = 'models/yolov5s.pt'
 model = None
 confidence = .25
+
+
+# Author details
+st.sidebar.markdown("Author: MobiNext Technologies")
+st.sidebar.markdown("Task: Real-time object detection")
+
 
 # Centered title with HTML and CSS
 st.markdown(
@@ -70,11 +75,8 @@ def video_input(data_src):
             width = st.sidebar.number_input("Width", min_value=120, step=20, value=width)
             height = st.sidebar.number_input("Height", min_value=120, step=20, value=height)
 
-        fps = 0
         st.markdown("---")
         output = st.empty()
-        prev_time = 0
-        curr_time = 0
         while True:
             ret, frame = cap.read()
             if not ret:
@@ -84,12 +86,6 @@ def video_input(data_src):
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             output_img = infer_image(frame)
             output.image(output_img, use_column_width=True)  # Display the video on full screen
-            curr_time = time.time()
-            fps = 1 / (curr_time - prev_time)
-            prev_time = curr_time
-            st.text(f'FPS: {fps:.2f}')
-
-        cap.release()
 
 def infer_image(img, size=None):
     model.conf = confidence
@@ -104,16 +100,6 @@ def load_model(path):
     model_.to('cpu')  # Assume CPU for simplicity
     print("model to CPU")
     return model_
-
-def load_custom_model(model_path):
-    model = torch.load(model_path, map_location='cpu')  # Assume CPU for simplicity
-    model.eval()
-    return model
-
-@st.cache_resource
-def download_model(url):
-    model_file = wget.download(url, out="models")
-    return model_file
 
 def get_user_model():
     model_src = st.sidebar.radio("Model source", ["Custom model", "YOLO"])
@@ -141,14 +127,6 @@ def main():
         model = load_model(cfg_model_path)
         confidence = st.sidebar.slider('Confidence', min_value=0.1, max_value=1.0, value=0.45)
 
-        if st.sidebar.checkbox("Custom Classes"):
-            model_names = list(model.names.values())
-            assigned_class = st.sidebar.multiselect("Select Classes", model_names, default=[model_names[0]])
-            classes = [model_names.index(name) for name in assigned_class]
-            model.classes = classes
-        else:
-            model.classes = list(model.names.keys())
-
         st.sidebar.markdown("---")
 
         input_option = st.sidebar.radio("Select input type: ", ['Image', 'Video'])
@@ -159,8 +137,17 @@ def main():
         else:
             video_input(data_src)
 
+
+
+
 if __name__ == "__main__":
     try:
         main()
     except SystemExit:
         pass
+
+
+
+# Add author details at the bottom
+st.markdown("<br><br>", unsafe_allow_html=True)  # Create some space
+st.markdown("<p style='text-align: center;'>Created by MobiNext Technologies</p>", unsafe_allow_html=True)
