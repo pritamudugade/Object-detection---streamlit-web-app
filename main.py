@@ -109,7 +109,6 @@ def video_input(data_src):
         # Optional: Save unique detected objects to a file
         save_detected_objects(detected_objects)
 
-
 def infer_image(img, size=None, return_objects=False):
     model.conf = confidence
     result = model(img, size=size) if size else model(img)
@@ -118,10 +117,11 @@ def infer_image(img, size=None, return_objects=False):
 
     if return_objects:
         detected_objects = []
-        for label, conf in zip(result.names[0], result.pred[0][:, 4].tolist()):
+        for label, conf, bbox in zip(result.names[0], result.pred[0][:, 4].tolist(), result.pred[0][:, :4].tolist()):
             detected_objects.append({
                 'label': label,
-                'confidence': conf
+                'confidence': conf,
+                'bbox': bbox
             })
         return image, detected_objects
 
@@ -183,7 +183,7 @@ def main():
     global model, confidence, cfg_model_path
 
     # Center the headline
-    st.markdown("<h1 style='text-align: center;'>Object Detection Webapp</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center;'>VAMS-MobiNext</h1>", unsafe_allow_html=True)
 
     st.sidebar.title("Custom settings")
 
@@ -242,4 +242,4 @@ if __name__ == "__main__":
 
 # Add author details at the bottom
 st.markdown("<br><br>", unsafe_allow_html=True)  # Create some space
-st.markdown("<p style='text-align: center;'>Created by Your Name</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>Created by MobiNext Technologies</p>", unsafe_allow_html=True)
