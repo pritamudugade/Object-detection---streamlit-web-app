@@ -13,6 +13,9 @@ cfg_model_path = 'models/yolov5s.pt'
 model = None
 confidence = .25
 
+# Author details
+st.sidebar.markdown("Author: MobiNext Technologies")
+st.sidebar.markdown("Task: Real-time object detection")
 
 def image_input(data_src):
     img_file = None
