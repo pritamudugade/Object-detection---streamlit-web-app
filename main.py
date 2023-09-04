@@ -78,7 +78,7 @@ def video_input(data_src):
         output = st.empty()
         prev_time = 0
         curr_time = 0
-        detected_objects = []
+        detected_objects = set()  # Use a set to store unique detected objects
 
         while True:
             ret, frame = cap.read()
@@ -96,17 +96,18 @@ def video_input(data_src):
             st2_text.markdown(f"**{width}**")
             st3_text.markdown(f"**{fps:.2f}**")
 
-            # Collect detected objects
-            detected_objects.extend(objects)
+            # Collect unique detected objects
+            detected_objects.update(objects)
 
         cap.release()
 
-        # Display the list of detected objects at the end
-        st.write("Total Detected Objects:")
+        # Display the list of unique detected objects at the end
+        st.write("Unique Detected Objects:")
         for idx, obj in enumerate(detected_objects, start=1):
-            st.write(f"{idx}. Label: {obj['label']}, Confidence: {obj['confidence']:.2f}, Bounding Box: {obj['bbox']}")
+            st.write(f"{idx}. Label: {obj['label']}, Confidence: {obj['confidence']:.2f}")
 
-
+        # Optional: Save unique detected objects to a file
+        save_detected_objects(detected_objects)
 
 
 def infer_image(img, size=None, return_objects=False):
@@ -117,15 +118,21 @@ def infer_image(img, size=None, return_objects=False):
 
     if return_objects:
         detected_objects = []
-        for label, conf, bbox in zip(result.names[0], result.pred[0][:, 4].tolist(), result.pred[0][:, :4].tolist()):
+        for label, conf in zip(result.names[0], result.pred[0][:, 4].tolist()):
             detected_objects.append({
                 'label': label,
-                'confidence': conf,
-                'bbox': bbox
+                'confidence': conf
             })
         return image, detected_objects
 
     return image
+
+
+def save_detected_objects(objects):
+    # You can customize the file path and format as needed
+    with open("detected_objects.txt", "w") as file:
+        for obj in objects:
+            file.write(f"Label: {obj['label']}, Confidence: {obj['confidence']:.2f}\n")
 
 
 @st.cache_resource
@@ -169,7 +176,6 @@ def get_user_model():
 # Default values
 default_input_option = 'video'
 default_data_src = 'Upload data from the local system'
-
 
 
 def main():
