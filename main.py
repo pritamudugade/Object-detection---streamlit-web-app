@@ -65,8 +65,9 @@ def video_input(data_src):
                 vid_file = "data/uploaded_data/upload." + vid_bytes.name.split('.')[-1]
                 with open(vid_file, 'wb') as out:
                     out.write(vid_bytes.read())
-            except FileNotFoundError:
-                st.sidebar.error("An error occurred while processing the uploaded video. Please try again.")
+            except FileNotFoundError as e:
+                st.sidebar.error(f"FileNotFoundError: {e}")
+                return  # Exit the function if an error occurs
 
     if vid_file:
         cap = cv2.VideoCapture(vid_file)
@@ -88,6 +89,7 @@ def video_input(data_src):
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             output_img = infer_image(frame)
             output.image(output_img, use_column_width=True)  # Display the video on full screen
+
 
 
 def infer_image(img, size=None):
