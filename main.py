@@ -62,11 +62,19 @@ def video_input(data_src):
         vid_bytes = st.sidebar.file_uploader("Upload a video", type=['mp4', 'mpv', 'avi'])
         if vid_bytes:
             try:
-                vid_file = "data/uploaded_data/upload." + vid_bytes.name.split('.')[-1]
+                # Use a unique filename based on current time to avoid conflicts
+                import time
+                timestamp = int(time.time())
+                vid_file = f"data/uploaded_data/upload_{timestamp}.mp4"
+                
+                # Save the uploaded video to the specified path
                 with open(vid_file, 'wb') as out:
                     out.write(vid_bytes.read())
-            except FileNotFoundError as e:
-                st.sidebar.error(f"FileNotFoundError: {e}")
+                
+                # Provide a success message to the user
+                st.sidebar.success(f"Video uploaded successfully as {vid_file}")
+            except Exception as e:
+                st.sidebar.error(f"An error occurred while processing the uploaded video: {e}")
                 return  # Exit the function if an error occurs
 
     if vid_file:
@@ -89,6 +97,7 @@ def video_input(data_src):
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             output_img = infer_image(frame)
             output.image(output_img, use_column_width=True)  # Display the video on full screen
+
 
 
 
